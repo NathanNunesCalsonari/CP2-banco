@@ -1,0 +1,41 @@
+import pandas as pd
+import cx_Oracle
+from openpyxl import load_workbook
+
+# Connection to the Oracle database
+db = cx_Oracle.connect(user='rm552539', password='130701', dsn='oracle.fiap.com.br/orcl')
+cursor = db.cursor()
+
+# Read data from the Excel spreadsheet (make sure the file 'tipo_contato_paciente.xlsx' exists)
+workbook = load_workbook('cidade.xlsx')
+sheet = workbook.active
+
+# Loop to insert data into the database
+for row in sheet.iter_rows(values_only=True):
+    id_cidade = int(row[0])
+    id_estado = int(row[1])
+    nm_cidade = str(row[2])
+    cd_ibge = int(row[3])
+    nr_ddd = int(row[4)
+    dt_cadastro = row[5]  # You may need to format this date correctly
+    nm_usuario = str(row[6])
+
+    print(f"ID Cidade: {id_cidade}, ID Estado: {id_estado}, Nome Cidade: {nm_cidade}, Código IBGE: {cd_ibge}, DDD: {nr_ddd}, Dt Cadastro: {dt_cadastro}, Nm Usuario: {nm_usuario}")
+
+    sql = """
+    INSERT INTO T_RHSTU_CIDADE (Id_cidade, Id_estado, Nm_cidade, Cd_ibge, Nr_DDD, Dt_Cadastro, Nm_usuario)
+    VALUES (:id_cidade, :id_estado, :nm_cidade, :cd_ibge, :nr_ddd, :dt_cadastro, :nm_usuario)
+    """
+
+    try:
+        cursor.execute(sql, id_cidade=id_cidade, id_estado=id_estado, nm_cidade=nm_cidade, cd_ibge=cd_ibge, nr_ddd=nr_ddd, dt_cadastro=dt_cadastro, nm_usuario=nm_usuario)
+        db.commit()
+        print(f"Inserido ID Cidade: {id_cidade}")
+    except cx_Oracle.Error as e:
+        print(f"Erro ao inserir ID Cidade: {id_cidade}: {e}")
+
+# Close the cursor and the connection
+cursor.close()
+db.close()
+
+print("Data insertion into T_RHSTU_CIDADE table completed.")

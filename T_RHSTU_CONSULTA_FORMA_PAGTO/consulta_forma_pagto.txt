@@ -1,0 +1,43 @@
+import pandas as pd
+import cx_Oracle  # Assuming you are using the cx_Oracle library for Oracle database access
+from openpyxl import load_workbook
+
+# Connection to the Oracle database
+db = cx_Oracle.connect(user='rm552537', password='280305', dsn='oracle.fiap.com.br/orcl')
+cursor = db.cursor()
+
+# Read data from the Excel spreadsheet (make sure the file 'planilha_medicamentos.xlsx' exists)
+workbook = load_workbook('consulta_forma_pagto.xlsx')
+sheet = workbook.active
+
+# Loop to insert data into the database
+for row in sheet.iter_rows(values_only=True):
+    id_consulta_forma_pagto = int(row[0])
+    id_uni_hospital = int(row[1])
+    id_consulta = int(row[2])
+    id_paciente_ps = int(row[3])
+    id_forma_pagto = int(row[4])
+    dt_pagto_consulta = row[5]  # You may need to format this date correctly
+    st_pagto_consulta = row[6]  # Assuming it's a string
+    dt_cadastro = row[7]  # You may need to format this date correctly
+    nm_usuario = str(row[8])
+
+    print(f"ID Consulta Forma Pagto: {id_consulta_forma_pagto}, ID Uni Hospital: {id_uni_hospital}, ID Consulta: {id_consulta}, ID Paciente PS: {id_paciente_ps}, ID Forma Pagto: {id_forma_pagto}, Dt Pagto Consulta: {dt_pagto_consulta}, St Pagto Consulta: {st_pagto_consulta}, Dt Cadastro: {dt_cadastro}, Nm Usuario: {nm_usuario}")
+
+    sql = """
+    INSERT INTO T_RHSTU_CONSULTA_FORMA_PAGTO (Id_consulta_forma_pagto, Id_uni_hospital, Id_consulta, Id_paciente_ps, Id_forma_pagto, Dt_pagto_consulta, St_pagto_consulta, Dt_cadastro, Nm_usuario)
+    VALUES (:id_consulta_forma_pagto, :id_uni_hospital, :id_consulta, :id_paciente_ps, :id_forma_pagto, :dt_pagto_consulta, :st_pagto_consulta, :dt_cadastro, :nm_usuario)
+    """
+
+    try:
+        cursor.execute(sql, id_consulta_forma_pagto=id_consulta_forma_pagto, id_uni_hospital=id_uni_hospital, id_consulta=id_consulta, id_paciente_ps=id_paciente_ps, id_forma_pagto=id_forma_pagto, dt_pagto_consulta=dt_pagto_consulta, st_pagto_consulta=st_pagto_consulta, dt_cadastro=dt_cadastro, nm_usuario=nm_usuario)
+        db.commit()
+        print(f"Inserted data with ID Consulta Forma Pagto: {id_consulta_forma_pagto}")
+    except cx_Oracle.Error as e:
+        print(f"Error inserting data with ID Consulta Forma Pagto: {id_consulta_forma_pagto}: {e}")
+
+# Close the cursor and the connection
+cursor.close()
+db.close()
+
+print("Data insertion completed.")

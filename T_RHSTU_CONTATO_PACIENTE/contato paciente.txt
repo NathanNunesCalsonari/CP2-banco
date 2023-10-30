@@ -1,0 +1,43 @@
+import pandas as pd
+import cx_Oracle
+from openpyxl import load_workbook
+
+# Connection to the Oracle database
+db = cx_Oracle.connect(user='rm552539', password='130701', dsn='oracle.fiap.com.br/orcl')
+cursor = db.cursor()
+
+# Read data from the Excel spreadsheet (make sure the file 'tipo_contato_paciente.xlsx' exists)
+workbook = load_workbook('contato_paciente.xlsx')
+sheet = workbook.active
+
+# Loop to insert data into the database
+for row in sheet.iter_rows(values_only=True):
+    id_paciente = int(row[0])
+    id_contato = int(row[1])
+    id_tipo_contato = int(row[2])
+    nm_contato = str(row[3])
+    nr_dddi = int(row[4])  # Assuming this is an integer
+    nr_ddd = int(row[5])  # Assuming this is an integer
+    nr_telefone = int(row[6])  # Assuming this is an integer
+    dt_cadastro = row[7]  # You may need to format this date correctly
+    nm_usuario = str(row[8])
+
+    print(f"ID Paciente: {id_paciente}, ID Contato: {id_contato}, ID Tipo Contato: {id_tipo_contato}, Nome Contato: {nm_contato}, DDDI: {nr_dddi}, DDD: {nr_ddd}, Número de Telefone: {nr_telefone}, Dt Cadastro: {dt_cadastro}, Nm Usuario: {nm_usuario}")
+
+    sql = """
+    INSERT INTO T_RHSTU_CONTATO_PACIENTE (Id_paciente, Id_contato, Id_tipo_contato, Nm_contato, Nr_dddi, Nr_ddd, Nr_telefone, Dt_cadastro, Nm_usuario)
+    VALUES (:id_paciente, :id_contato, :id_tipo_contato, :nm_contato, :nr_dddi, :nr_ddd, :nr_telefone, :dt_cadastro, :nm_usuario)
+    """
+
+    try:
+        cursor.execute(sql, id_paciente=id_paciente, id_contato=id_contato, id_tipo_contato=id_tipo_contato, nm_contato=nm_contato, nr_dddi=nr_dddi, nr_ddd=nr_ddd, nr_telefone=nr_telefone, dt_cadastro=dt_cadastro, nm_usuario=nm_usuario)
+        db.commit()
+        print(f"Inserido ID Paciente: {id_paciente}")
+    except cx_Oracle.Error as e:
+        print(f"Erro ao inserir ID Paciente: {id_paciente}: {e}")
+
+# Close the cursor and the connection
+cursor.close()
+db.close()
+
+print("Data insertion into T_RHSTU_CONTATO_PACIENTE table completed.")
